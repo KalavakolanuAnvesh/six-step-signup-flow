@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { User, CreditCard, Check } from 'lucide-react';
+import { User, CreditCard, Check, Phone } from 'lucide-react';
 
 import Navbar from '@/components/Navbar';
 import FormStep from '@/components/FormStep';
@@ -23,13 +22,13 @@ const SignUp = () => {
     name: '',
     industry: '',
     size: '',
-    country: '',
-    create: ''
+    country: ''
   });
   
   const [adminData, setAdminData] = useState({
     fullName: '',
-    role: ''
+    role: '',
+    phoneNumber: ''
   });
   
   const [botSelections, setBotSelections] = useState({
@@ -40,9 +39,11 @@ const SignUp = () => {
   });
   
   const [paymentData, setPaymentData] = useState({
-    promoCode: '',
-    billingCycle: 'monthly',
-    autoRenew: false
+    cardNumber: '',
+    cardHolder: '',
+    expiryDate: '',
+    cvv: '',
+    upi: ''
   });
   
   const steps = [
@@ -54,32 +55,30 @@ const SignUp = () => {
   ];
   
   const handleNext = () => {
-    // Validation logic for each step
     if (currentStep === 0) {
-      // Validate organization step
       if (!orgData.name || !orgData.industry || !orgData.country) {
         toast.error("Please fill all required fields");
         return;
       }
     } else if (currentStep === 1) {
-      // Validate admin profile step
-      if (!adminData.fullName || !adminData.role) {
+      if (!adminData.fullName || !adminData.role || !adminData.phoneNumber) {
         toast.error("Please fill all required fields");
         return;
       }
     } else if (currentStep === 2) {
-      // Validate bot selection step
       const hasBots = Object.values(botSelections).some(value => value);
       if (!hasBots) {
         toast.error("Please select at least one bot");
         return;
       }
     } else if (currentStep === 3) {
-      // Mock payment processing
+      if (!paymentData.cardNumber || !paymentData.cardHolder || !paymentData.expiryDate || !paymentData.cvv) {
+        toast.error("Please fill all required payment fields");
+        return;
+      }
       toast.success("Payment processed successfully!");
     }
     
-    // Move to next step if validation passed
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
@@ -130,7 +129,6 @@ const SignUp = () => {
             <StepIndicator steps={steps} currentStep={currentStep} />
           )}
 
-          {/* Step 1: Register Organization */}
           <FormStep isActive={currentStep === 0}>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -189,18 +187,6 @@ const SignUp = () => {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="create">Create</Label>
-                <Input 
-                  id="create" 
-                  name="create" 
-                  placeholder="Optional" 
-                  value={orgData.create}
-                  onChange={handleOrgChange}
-                  className="bg-gray-800 border-gray-700"
-                />
-              </div>
-              
               <Button 
                 onClick={handleNext}
                 className="w-full bg-botplanet-purple hover:bg-botplanet-dark-purple"
@@ -210,7 +196,6 @@ const SignUp = () => {
             </div>
           </FormStep>
 
-          {/* Step 2: Admin Profile */}
           <FormStep isActive={currentStep === 1}>
             <div className="flex flex-col items-center mb-6">
               <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center mb-4">
@@ -242,6 +227,22 @@ const SignUp = () => {
                   className="bg-gray-800 border-gray-700"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 text-gray-400" size={16} />
+                  <Input 
+                    id="phone" 
+                    name="phoneNumber" 
+                    type="tel"
+                    placeholder="Enter your phone number" 
+                    value={adminData.phoneNumber}
+                    onChange={handleAdminChange}
+                    className="bg-gray-800 border-gray-700 pl-10"
+                  />
+                </div>
+              </div>
               
               <div className="flex justify-between mt-8 space-x-4">
                 <Button 
@@ -261,7 +262,6 @@ const SignUp = () => {
             </div>
           </FormStep>
 
-          {/* Step 3: Select Bots */}
           <FormStep isActive={currentStep === 2}>
             <div className="grid grid-cols-5 gap-4">
               <div className="col-span-1 space-y-4">
@@ -277,9 +277,6 @@ const SignUp = () => {
                 <div className={`p-2 rounded cursor-pointer ${botSelections.content ? 'bg-botplanet-purple/20 text-botplanet-purple' : 'text-gray-400 hover:bg-gray-800'}`} onClick={() => handleBotToggle('content')}>
                   Content
                 </div>
-                <div className="p-2 rounded text-gray-400 cursor-pointer hover:bg-gray-800">
-                  etc.
-                </div>
               </div>
               
               <div className="col-span-4 bg-gray-800 rounded-lg p-4">
@@ -292,10 +289,7 @@ const SignUp = () => {
                         </div>
                         <span>Sales Assistant</span>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-600">Advanced</Button>
-                        <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-600">Try Now</Button>
-                      </div>
+                      <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-600">Try Now</Button>
                     </div>
                     
                     <div className="flex justify-between items-center p-3 bg-gray-700 rounded">
@@ -305,15 +299,11 @@ const SignUp = () => {
                         </div>
                         <span>Price Optimization</span>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-600">Advanced</Button>
-                        <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-600">Try Now</Button>
-                      </div>
+                      <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-600">Try Now</Button>
                     </div>
                   </div>
                 )}
                 
-                {/* Display a message when no category is selected */}
                 {!Object.values(botSelections).some(v => v) && (
                   <div className="h-full flex items-center justify-center text-gray-500">
                     Select a category to see available bots
@@ -339,76 +329,78 @@ const SignUp = () => {
             </div>
           </FormStep>
 
-          {/* Step 4: Payment / Subscription */}
           <FormStep isActive={currentStep === 3}>
             <div className="space-y-6">
-              <div className="bg-gray-800 p-4 rounded-lg">
-                <h3 className="font-medium mb-4">Selected Bots</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                    <span>Bot Name</span>
-                    <span>Quantity</span>
+              <div className="bg-gray-800 p-4 rounded-lg mb-6">
+                <h3 className="font-medium mb-4">Payment Details</h3>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="card-number">Card Number</Label>
+                    <div className="relative">
+                      <CreditCard className="absolute left-3 top-3 text-gray-400" size={16} />
+                      <Input 
+                        id="card-number" 
+                        name="cardNumber"
+                        placeholder="1234 5678 9012 3456"
+                        value={paymentData.cardNumber}
+                        onChange={(e) => setPaymentData({...paymentData, cardNumber: e.target.value})}
+                        className="bg-gray-800 border-gray-700 pl-10"
+                      />
+                    </div>
                   </div>
-                  
-                  {botSelections.sales && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Sales Assistant</span>
-                      <span className="text-gray-300">1</span>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="card-holder">Card Holder Name</Label>
+                    <Input 
+                      id="card-holder" 
+                      name="cardHolder"
+                      placeholder="Name on card"
+                      value={paymentData.cardHolder}
+                      onChange={(e) => setPaymentData({...paymentData, cardHolder: e.target.value})}
+                      className="bg-gray-800 border-gray-700"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="expiry">Expiry Date</Label>
+                      <Input 
+                        id="expiry" 
+                        name="expiryDate"
+                        placeholder="MM/YY"
+                        value={paymentData.expiryDate}
+                        onChange={(e) => setPaymentData({...paymentData, expiryDate: e.target.value})}
+                        className="bg-gray-800 border-gray-700"
+                      />
                     </div>
-                  )}
-                  
-                  {botSelections.marketing && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Marketing Bot</span>
-                      <span className="text-gray-300">1</span>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="cvv">CVV</Label>
+                      <Input 
+                        id="cvv" 
+                        name="cvv"
+                        type="password"
+                        maxLength={4}
+                        placeholder="123"
+                        value={paymentData.cvv}
+                        onChange={(e) => setPaymentData({...paymentData, cvv: e.target.value})}
+                        className="bg-gray-800 border-gray-700"
+                      />
                     </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="promo-code">Promo Code</Label>
-                  <Input 
-                    id="promo-code" 
-                    placeholder="Enter promo code (optional)" 
-                    value={paymentData.promoCode}
-                    onChange={(e) => setPaymentData({...paymentData, promoCode: e.target.value})}
-                    className="bg-gray-800 border-gray-700"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Billing Cycle</Label>
-                  <RadioGroup 
-                    value={paymentData.billingCycle} 
-                    onValueChange={(value) => setPaymentData({...paymentData, billingCycle: value})}
-                    className="flex space-x-8"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="monthly" id="monthly" className="text-botplanet-purple" />
-                      <Label htmlFor="monthly">Monthly</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="annual" id="annual" className="text-botplanet-purple" />
-                      <Label htmlFor="annual">Annual</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="auto-renew" 
-                    checked={paymentData.autoRenew}
-                    onCheckedChange={(checked) => 
-                      setPaymentData({...paymentData, autoRenew: checked as boolean})}
-                  />
-                  <label
-                    htmlFor="auto-renew"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Enable auto renew
-                  </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="upi">UPI ID (Optional)</Label>
+                    <Input 
+                      id="upi" 
+                      name="upi"
+                      placeholder="username@upi"
+                      value={paymentData.upi}
+                      onChange={(e) => setPaymentData({...paymentData, upi: e.target.value})}
+                      className="bg-gray-800 border-gray-700"
+                    />
+                  </div>
                 </div>
               </div>
               
@@ -430,7 +422,6 @@ const SignUp = () => {
             </div>
           </FormStep>
 
-          {/* Step 5: Your organization is ready! */}
           <FormStep isActive={currentStep === 4}>
             <div className="text-center space-y-6">
               <div className="w-16 h-16 mx-auto bg-botplanet-purple/20 rounded-full flex items-center justify-center">
